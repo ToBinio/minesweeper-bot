@@ -31,6 +31,4 @@ fn main() {
             game.update_img();
         }
     }
-
-    // game.update_field();
 }

@@ -250,6 +250,8 @@ impl Game {
     }
 
     pub fn choose_field(&self) {
+        let mut moves = vec![];
+
         for (x, line) in self.field.iter().enumerate() {
             let x = x as i32;
             for (y, state) in line.iter().enumerate() {
@@ -289,16 +291,12 @@ impl Game {
 
                         if (unknowns.len() + flags.len()) == *value as usize && unknowns.len() > 0 {
                             for pos in unknowns {
-                                self.move_to_cell(pos.0 as i32, pos.1 as i32);
-                                rigth_click();
+                                moves.push((Action::Bomb, (pos.0 as i32, pos.1 as i32)));
                             }
-                            return;
                         } else if flags.len() == *value as usize && unknowns.len() > 0 {
                             for pos in unknowns {
-                                self.move_to_cell(pos.0 as i32, pos.1 as i32);
-                                left_click();
+                                moves.push((Action::Save, (pos.0 as i32, pos.1 as i32)));
                             }
-                            return;
                         }
                     }
                     _ => {}
@@ -306,7 +304,25 @@ impl Game {
             }
         }
 
-        self.choose_random();
+        if moves.len() > 0 {
+            moves.sort_by(|a,b| a.1.cmp(&b.1));
+            moves.dedup_by(|a, b| a.1 == b.1);
+
+            for (action, (x, y)) in moves {
+                match action {
+                    Action::Bomb => {
+                        self.move_to_cell(x, y);
+                        rigth_click();
+                    }
+                    Action::Save => {
+                        self.move_to_cell(x, y);
+                        left_click();
+                    }
+                }
+            }
+        } else {
+            self.choose_random();
+        }
     }
 }
 
@@ -314,4 +330,9 @@ pub enum FieldState {
     Value(i32),
     Unknown,
     Flag,
+}
+
+enum Action {
+    Bomb,
+    Save,
 }
